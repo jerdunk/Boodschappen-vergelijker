@@ -17,16 +17,10 @@ Een Nederlandse supermarkt prijsvergelijker gebouwd met pure HTML, CSS en JavaSc
 
 - Albert Heijn
 - Jumbo
-- ALDI
-- Coop
-- Dirk
-- Hoogvliet
-- Jan Linders
-- Picnic
 - Plus
-- SPAR
-- Vomar
-- DekaMarkt
+- LIDL*
+
+> *Let op: LIDL heeft geen online productprijzen, dus deze supermarkt zal mogelijk niet in de resultaten verschijnen.
 
 ## Installatie
 

@@ -565,7 +565,11 @@ cola 1,5 liter`;
                 }
 
                 // Fetch prices
-                const supermarkets = await getPricesForProducts(products);
+                let supermarkets = await getPricesForProducts(products);
+
+                // Filter op geselecteerde supermarkten
+                const allowedCodes = ['jumbo', 'ah', 'plus', 'lidl'];
+                supermarkets = supermarkets.filter(s => allowedCodes.includes(s.code.toLowerCase()));
 
                 // Sort by total price
                 supermarkets.sort((a, b) => {
