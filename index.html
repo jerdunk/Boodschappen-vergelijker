@@ -31,7 +31,6 @@
         .list-item:last-child { border-bottom: none; }
         .item-details { flex: 1; margin-left: 10px; }
         .item-name { font-weight: bold; display: block; }
-        .item-sub { font-size: 0.85em; color: #7f8c8d; }
         
         /* Totalen blok */
         .totals-box { background-color: #fff3cd; border-left: 5px solid #ffc107; padding: 15px; margin-top: 20px; border-radius: 4px; }
@@ -39,6 +38,8 @@
         .winner { font-weight: bold; color: #27ae60; font-size: 1.2em;}
         
         input[type="checkbox"] { transform: scale(1.5); margin-right: 10px; }
+        
+        .live-badge { color: red; font-size: 0.8em; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -71,10 +72,9 @@
 
     <script>
         let html5QrcodeScanner;
-        let huidigProduct = null; // Slaat tijdelijk de data op voor we het toevoegen
+        let huidigProduct = null;
         
         // --- 1. BOODSCHAPPENLIJST DATA ---
-        // Haal het lijstje op uit het geheugen van de telefoon, of maak een lege aan
         let boodschappenLijst = JSON.parse(localStorage.getItem('mijnBoodschappen')) || [];
 
         // --- 2. SCANNER FUNCTIES ---
@@ -89,7 +89,7 @@
                 { facingMode: "environment" },
                 { fps: 10, qrbox: { width: 250, height: 100 } },
                 onScanSuccess,
-                (error) => {} // negeer errors tijdens scannen
+                (error) => {} 
             ).catch(err => {
                 alert("Camera kon niet starten.");
             });
@@ -120,7 +120,45 @@
             huidigProduct = null;
         }
 
-        // --- 3. PRODUCT OPHALEN & BEREKENEN ---
+        // --- 3. LIVE JUMBO DATA OPHALEN ---
+        async function haalJumboPrijsOp(eanCode) {
+            try {
+                // We gebruiken een gratis proxy om de beveiliging (CORS) van de browser te omzeilen
+                const proxyUrl = "https://api.allorigins.win/get?url=";
+                const jumboApiUrl = encodeURIComponent(`https://mobileapi.jumbo.com/v17/search?q=${eanCode}`);
+                
+                const response = await fetch(proxyUrl + jumboApiUrl);
+                const proxyData = await response.json();
+                
+                const jumboData = JSON.parse(proxyData.contents);
+
+                if (jumboData && jumboData.products && jumboData.products.data && jumboData.products.data.length > 0) {
+                    const product = jumboData.products.data[0]; 
+                    
+                    let prijsObj = product.prices && product.prices.price ? product.prices.price : null;
+                    let prijs = 0;
+                    
+                    if(prijsObj) {
+                        prijs = parseFloat(prijsObj.amount || prijsObj);
+                    }
+
+                    const hoeveelheid = product.quantity || ""; 
+                    const match = hoeveelheid.match(/\d+/);
+                    const gevondenGewicht = match ? parseInt(match[0]) : 0;
+
+                    if(prijs > 0 && gevondenGewicht > 0) {
+                        // Let op: Jumbo geeft prijzen vaak in centen (bijv. 360 = €3,60), vandaar gedeeld door 100.
+                        return { naam: "Jumbo", heeftProduct: true, gevondenGewicht: gevondenGewicht, prijs: prijs / 100 }; 
+                    }
+                }
+            } catch (error) {
+                console.log("Fout bij ophalen live Jumbo data:", error);
+            }
+            
+            return { naam: "Jumbo", heeftProduct: false, gevondenGewicht: 0, prijs: 0 };
+        }
+
+        // --- 4. PRODUCT OPHALEN & BEREKENEN ---
         async function fetchProduct(eanCode) {
             document.getElementById('result-container').style.display = 'block';
             document.getElementById('add-to-list-btn').style.display = 'none';
@@ -128,6 +166,7 @@
             document.getElementById('store-comparisons').innerHTML = '';
 
             try {
+                // Eerst basis data ophalen via Open Food Facts
                 const response = await fetch(`https://nl.openfoodfacts.org/api/v0/product/${eanCode}.json`);
                 const data = await response.json();
 
@@ -159,14 +198,20 @@
                     document.getElementById('product-name').innerText = `✅ ${name} (${weight}g/ml)`;
                     
                     if(weight > 0) {
-                        // Bouw de data op voor dit specifieke product
+                        // 1. Toon dat we aan het laden zijn
+                        document.getElementById('store-comparisons').innerHTML = '<i>Live prijzen ophalen (dit kan even duren)...</i>';
+                        
+                        // 2. Wacht op de échte data van Jumbo!
+                        const liveJumboData = await haalJumboPrijsOp(eanCode);
+                        
+                        // 3. Bouw de data op
                         huidigProduct = {
-                            id: Date.now(), // unieke code voor het lijstje
+                            id: Date.now(),
                             ean: eanCode,
                             naam: name,
                             gewicht: weight,
                             gekocht: false,
-                            prijzen: simuleerSupermarkten(weight) // Haal de simulatie prijzen op
+                            prijzen: berekendePrijzen(weight, liveJumboData) 
                         };
                         
                         document.getElementById('add-to-list-btn').style.display = 'block';
@@ -181,35 +226,36 @@
             }
         }
 
-        // Simulatie data, aangepast naar Lidl, Jumbo, Plus
-        function simuleerSupermarkten(doelGewicht) {
+        function berekendePrijzen(doelGewicht, liveJumboData) {
             const stores = [
-                { naam: "Lidl", heeftProduct: true, gevondenGewicht: 300, prijs: 2.49 },
-                { naam: "Jumbo", heeftProduct: true, gevondenGewicht: 400, prijs: 3.60 },
-                { naam: "Plus", heeftProduct: false, gevondenGewicht: 0, prijs: 0 }
+                { naam: "Lidl", heeftProduct: true, gevondenGewicht: 300, prijs: 2.49 }, // Simulatie
+                liveJumboData, // HIER ZIT JOUW LIVE DATA!
+                { naam: "Plus", heeftProduct: true, gevondenGewicht: 300, prijs: 3.10 } // Aangepaste simulatie
             ];
 
-            let berekendePrijzen = {};
-            let html = `<strong>Omgerekende prijzen:</strong><br><ul style="margin-top:5px; padding-left:20px;">`;
+            let prijzenLijst = {};
+            let html = `<strong>Omgerekende prijzen (naar ${doelGewicht}g):</strong><br><ul style="margin-top:5px; padding-left:20px;">`;
 
             stores.forEach(store => {
                 if (store.heeftProduct) {
                     const prijsPerGram = store.prijs / store.gevondenGewicht;
                     const eerlijkePrijs = parseFloat((prijsPerGram * doelGewicht).toFixed(2));
-                    berekendePrijzen[store.naam] = eerlijkePrijs;
-                    html += `<li>${store.naam}: €${eerlijkePrijs} <span style="font-size:0.8em; color:gray;">(was €${store.prijs} voor ${store.gevondenGewicht}g)</span></li>`;
+                    prijzenLijst[store.naam] = eerlijkePrijs;
+                    
+                    let liveLabel = store.naam === "Jumbo" ? " <span class='live-badge'>🔴(LIVE)</span>" : "";
+                    html += `<li>${store.naam}${liveLabel}: €${eerlijkePrijs} <span style="font-size:0.8em; color:gray;">(was €${store.prijs.toFixed(2)} voor ${store.gevondenGewicht}g)</span></li>`;
                 } else {
-                    berekendePrijzen[store.naam] = null; // Null betekent niet gevonden
-                    html += `<li><span style="color: gray;">${store.naam}: Niet in assortiment</span></li>`;
+                    prijzenLijst[store.naam] = null;
+                    html += `<li><span style="color: gray;">${store.naam}: Niet gevonden</span></li>`;
                 }
             });
             html += `</ul>`;
 
             document.getElementById('store-comparisons').innerHTML = html;
-            return berekendePrijzen; // We geven de data terug zodat we hem kunnen opslaan
+            return prijzenLijst;
         }
 
-        // --- 4. LIJST BEHEER ---
+        // --- 5. LIJST BEHEER ---
         function voegToeAanLijst() {
             if(huidigProduct) {
                 boodschappenLijst.push(huidigProduct);
@@ -220,7 +266,6 @@
         }
 
         function slaLijstOp() {
-            // Sla op in de browser
             localStorage.setItem('mijnBoodschappen', JSON.stringify(boodschappenLijst));
         }
 
@@ -244,7 +289,7 @@
             }
         }
 
-        // --- 5. HET TOTAAL MANDJE BEREKENEN ---
+        // --- 6. HET TOTAAL MANDJE BEREKENEN ---
         function tekenLijst() {
             const container = document.getElementById('shopping-list');
             const totalContainer = document.getElementById('totals-container');
@@ -258,7 +303,6 @@
             let html = '';
             let totalen = { "Lidl": 0, "Jumbo": 0, "Plus": 0 };
             
-            // Bouw de items op
             boodschappenLijst.forEach((item, index) => {
                 const checked = item.gekocht ? 'checked' : '';
                 const listClass = item.gekocht ? 'list-item checked' : 'list-item';
@@ -273,12 +317,11 @@
                     </div>
                 `;
 
-                // Tel de prijzen op voor de conclusie
                 for (let winkel in totalen) {
                     if (item.prijzen[winkel] !== null) {
                         totalen[winkel] += item.prijzen[winkel];
                     } else {
-                        // Strafprijs: als ze het niet hebben, tellen we er fictief €3,- bij op (voor ritje naar andere winkel)
+                        // Strafprijs: als ze het niet hebben, tellen we er fictief €3,- bij op
                         totalen[winkel] += 3.00; 
                     }
                 }
@@ -287,7 +330,6 @@
             html += `<button class="btn btn-red" onclick="wisHeleLijst()" style="margin-top: 20px;">🗑️ Wis hele lijst</button>`;
             container.innerHTML = html;
 
-            // Bepaal de winnaar
             let winnaar = Object.keys(totalen).reduce((a, b) => totalen[a] < totalen[b] ? a : b);
 
             totalContainer.style.display = 'block';
@@ -303,7 +345,6 @@
             `;
         }
 
-        // Teken de lijst direct bij het openen van de pagina
         window.onload = tekenLijst;
 
     </script>
