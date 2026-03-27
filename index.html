@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onze Boodschappen App</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f9; color: #333; padding-bottom: 100px; }
+        h1, h2 { text-align: center; color: #2c3e50; }
+        .container { max-width: 500px; margin: 0 auto; }
+        
+        /* Scanner en Knoppen */
+        #reader { width: 100%; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .btn { display: block; width: 100%; margin: 10px 0; padding: 15px; background-color: #27ae60; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold;}
+        .btn:hover { background-color: #2ecc71; }
+        .btn-blue { background-color: #3498db; }
+        .btn-blue:hover { background-color: #2980b9; }
+        .btn-red { background-color: #e74c3c; padding: 10px; }
+        
+        .manual-input { display: flex; gap: 10px; margin-bottom: 20px; }
+        .manual-input input { flex: 1; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 5px; }
+        .manual-input button { padding: 10px 20px; background-color: #34495e; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        
+        /* Resultaten & Lijst */
+        .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-top: 20px; }
+        .product-title { font-weight: bold; font-size: 1.2em; margin-bottom: 10px; color: #27ae60; }
+        
+        .list-item { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eee; padding: 15px 0; }
+        .list-item.checked .item-details { text-decoration: line-through; color: #95a5a6; }
+        .list-item:last-child { border-bottom: none; }
+        .item-details { flex: 1; margin-left: 10px; }
+        .item-name { font-weight: bold; display: block; }
+        .item-sub { font-size: 0.85em; color: #7f8c8d; }
+        
+        /* Totalen blok */
+        .totals-box { background-color: #fff3cd; border-left: 5px solid #ffc107; padding: 15px; margin-top: 20px; border-radius: 4px; }
+        .totals-box h3 { margin-top: 0; }
+        .winner { font-weight: bold; color: #27ae60; font-size: 1.2em;}
+        
+        input[type="checkbox"] { transform: scale(1.5); margin-right: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🛒 Scan & Vergelijk</h1>
+        
+        <div class="manual-input">
+            <input type="text" id="manual-ean" placeholder="Of typ EAN code (bijv. 8712100416045)">
+            <button onclick="testManualEAN()">Zoek</button>
+        </div>
+        <button class="btn" id="start-btn" onclick="startScanner()">📷 Start Camera</button>
+        <div id="reader"></div>
+        
+        <div id="result-container" class="card" style="display: none;">
+            <div class="product-title" id="product-name">Product laden...</div>
+            <div id="store-comparisons"></div>
+            <button class="btn btn-blue" id="add-to-list-btn" style="display: none;" onclick="voegToeAanLijst()">➕ Voeg toe aan lijstje</button>
+            <button class="btn" onclick="resetApp()" style="background-color: #95a5a6; margin-top: 10px;">Annuleer</button>
+        </div>
+
+        <h2>📝 Ons Boodschappenlijstje</h2>
+        <div id="shopping-list" class="card">
+            <i>Je lijstje is nog leeg. Scan een product!</i>
+        </div>
+
+        <div id="totals-container" class="totals-box" style="display: none;">
+            </div>
+    </div>
+
+    <script>
+        let html5QrcodeScanner;
+        let huidigProduct = null; // Slaat tijdelijk de data op voor we het toevoegen
+        
+        // --- 1. BOODSCHAPPENLIJST DATA ---
+        // Haal het lijstje op uit het geheugen van de telefoon, of maak een lege aan
+        let boodschappenLijst = JSON.parse(localStorage.getItem('mijnBoodschappen')) || [];
+
+        // --- 2. SCANNER FUNCTIES ---
+        function startScanner() {
+            document.getElementById('start-btn').style.display = 'none';
+            document.getElementById('result-container').style.display = 'none';
+            
+            const formatsToSupport = [ Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.EAN_8 ];
+            html5QrcodeScanner = new Html5Qrcode("reader", { formatsToSupport: formatsToSupport });
+            
+            html5QrcodeScanner.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 100 } },
+                onScanSuccess,
+                (error) => {} // negeer errors tijdens scannen
+            ).catch(err => {
+                alert("Camera kon niet starten.");
+            });
+        }
+
+        function onScanSuccess(decodedText) {
+            html5QrcodeScanner.stop().then(() => {
+                document.getElementById('reader').innerHTML = ""; 
+                fetchProduct(decodedText);
+            });
+        }
+
+        function testManualEAN() {
+            const ean = document.getElementById('manual-ean').value.trim();
+            if(ean) {
+                if(html5QrcodeScanner && html5QrcodeScanner.isScanning) {
+                    html5QrcodeScanner.stop();
+                    document.getElementById('reader').innerHTML = "";
+                }
+                fetchProduct(ean);
+            }
+        }
+
+        function resetApp() {
+            document.getElementById('result-container').style.display = 'none';
+            document.getElementById('start-btn').style.display = 'block';
+            document.getElementById('manual-ean').value = '';
+            huidigProduct = null;
+        }
+
+        // --- 3. PRODUCT OPHALEN & BEREKENEN ---
+        async function fetchProduct(eanCode) {
+            document.getElementById('result-container').style.display = 'block';
+            document.getElementById('add-to-list-btn').style.display = 'none';
+            document.getElementById('product-name').innerText = `Opzoeken...`;
+            document.getElementById('store-comparisons').innerHTML = '';
+
+            try {
+                const response = await fetch(`https://nl.openfoodfacts.org/api/v0/product/${eanCode}.json`);
+                const data = await response.json();
+
+                if (data.status === 1) {
+                    const product = data.product;
+                    const name = product.product_name || 'Onbekend product';
+                    let quantityStr = product.quantity || '';
+                    let weight = 0;
+                    
+                    if (quantityStr) {
+                        const match = quantityStr.toLowerCase().match(/([\d,\.]+)\s*(kg|g|ml|l|cl)/);
+                        if (match) {
+                            let num = parseFloat(match[1].replace(',', '.'));
+                            let unit = match[2];
+                            if (unit === 'kg' || unit === 'l') num *= 1000;
+                            if (unit === 'cl') num *= 10;
+                            weight = Math.round(num);
+                        } else {
+                            const fallbackMatch = quantityStr.match(/\d+/);
+                            if (fallbackMatch) weight = parseInt(fallbackMatch[0]);
+                        }
+                    }
+
+                    if (weight === 0) {
+                        const userInput = prompt(`Ik heb "${name}" gevonden. Hoeveel gram of ml is dit? (Alleen getal)`);
+                        if (userInput && !isNaN(userInput)) weight = parseInt(userInput);
+                    }
+
+                    document.getElementById('product-name').innerText = `✅ ${name} (${weight}g/ml)`;
+                    
+                    if(weight > 0) {
+                        // Bouw de data op voor dit specifieke product
+                        huidigProduct = {
+                            id: Date.now(), // unieke code voor het lijstje
+                            ean: eanCode,
+                            naam: name,
+                            gewicht: weight,
+                            gekocht: false,
+                            prijzen: simuleerSupermarkten(weight) // Haal de simulatie prijzen op
+                        };
+                        
+                        document.getElementById('add-to-list-btn').style.display = 'block';
+                    } else {
+                        document.getElementById('store-comparisons').innerHTML = `<p style="color: red;">Geen gewicht. Kan niet vergelijken.</p>`;
+                    }
+                } else {
+                    document.getElementById('product-name').innerText = `❌ Product niet gevonden.`;
+                }
+            } catch (error) {
+                document.getElementById('product-name').innerText = `⚠️ Fout bij ophalen.`;
+            }
+        }
+
+        // Simulatie data, aangepast naar Lidl, Jumbo, Plus
+        function simuleerSupermarkten(doelGewicht) {
+            const stores = [
+                { naam: "Lidl", heeftProduct: true, gevondenGewicht: 300, prijs: 2.49 },
+                { naam: "Jumbo", heeftProduct: true, gevondenGewicht: 400, prijs: 3.60 },
+                { naam: "Plus", heeftProduct: false, gevondenGewicht: 0, prijs: 0 }
+            ];
+
+            let berekendePrijzen = {};
+            let html = `<strong>Omgerekende prijzen:</strong><br><ul style="margin-top:5px; padding-left:20px;">`;
+
+            stores.forEach(store => {
+                if (store.heeftProduct) {
+                    const prijsPerGram = store.prijs / store.gevondenGewicht;
+                    const eerlijkePrijs = parseFloat((prijsPerGram * doelGewicht).toFixed(2));
+                    berekendePrijzen[store.naam] = eerlijkePrijs;
+                    html += `<li>${store.naam}: €${eerlijkePrijs} <span style="font-size:0.8em; color:gray;">(was €${store.prijs} voor ${store.gevondenGewicht}g)</span></li>`;
+                } else {
+                    berekendePrijzen[store.naam] = null; // Null betekent niet gevonden
+                    html += `<li><span style="color: gray;">${store.naam}: Niet in assortiment</span></li>`;
+                }
+            });
+            html += `</ul>`;
+
+            document.getElementById('store-comparisons').innerHTML = html;
+            return berekendePrijzen; // We geven de data terug zodat we hem kunnen opslaan
+        }
+
+        // --- 4. LIJST BEHEER ---
+        function voegToeAanLijst() {
+            if(huidigProduct) {
+                boodschappenLijst.push(huidigProduct);
+                slaLijstOp();
+                tekenLijst();
+                resetApp();
+            }
+        }
+
+        function slaLijstOp() {
+            // Sla op in de browser
+            localStorage.setItem('mijnBoodschappen', JSON.stringify(boodschappenLijst));
+        }
+
+        function toggleGekocht(index) {
+            boodschappenLijst[index].gekocht = !boodschappenLijst[index].gekocht;
+            slaLijstOp();
+            tekenLijst();
+        }
+
+        function verwijderProduct(index) {
+            boodschappenLijst.splice(index, 1);
+            slaLijstOp();
+            tekenLijst();
+        }
+
+        function wisHeleLijst() {
+            if(confirm("Weet je zeker dat je het hele mandje wilt leegmaken?")) {
+                boodschappenLijst = [];
+                slaLijstOp();
+                tekenLijst();
+            }
+        }
+
+        // --- 5. HET TOTAAL MANDJE BEREKENEN ---
+        function tekenLijst() {
+            const container = document.getElementById('shopping-list');
+            const totalContainer = document.getElementById('totals-container');
+            
+            if (boodschappenLijst.length === 0) {
+                container.innerHTML = "<i>Je lijstje is leeg.</i>";
+                totalContainer.style.display = 'none';
+                return;
+            }
+
+            let html = '';
+            let totalen = { "Lidl": 0, "Jumbo": 0, "Plus": 0 };
+            
+            // Bouw de items op
+            boodschappenLijst.forEach((item, index) => {
+                const checked = item.gekocht ? 'checked' : '';
+                const listClass = item.gekocht ? 'list-item checked' : 'list-item';
+                
+                html += `
+                    <div class="${listClass}">
+                        <input type="checkbox" ${checked} onchange="toggleGekocht(${index})">
+                        <div class="item-details">
+                            <span class="item-name">${item.naam} (${item.gewicht}g)</span>
+                        </div>
+                        <button onclick="verwijderProduct(${index})" style="background:none; border:none; color:red; font-size:1.5em; cursor:pointer;">&times;</button>
+                    </div>
+                `;
+
+                // Tel de prijzen op voor de conclusie
+                for (let winkel in totalen) {
+                    if (item.prijzen[winkel] !== null) {
+                        totalen[winkel] += item.prijzen[winkel];
+                    } else {
+                        // Strafprijs: als ze het niet hebben, tellen we er fictief €3,- bij op (voor ritje naar andere winkel)
+                        totalen[winkel] += 3.00; 
+                    }
+                }
+            });
+
+            html += `<button class="btn btn-red" onclick="wisHeleLijst()" style="margin-top: 20px;">🗑️ Wis hele lijst</button>`;
+            container.innerHTML = html;
+
+            // Bepaal de winnaar
+            let winnaar = Object.keys(totalen).reduce((a, b) => totalen[a] < totalen[b] ? a : b);
+
+            totalContainer.style.display = 'block';
+            totalContainer.innerHTML = `
+                <h3>🏆 Totaal Advies</h3>
+                <p>Jullie mandje (${boodschappenLijst.length} producten) kost in totaal:</p>
+                <ul style="margin: 0 0 15px 0; padding-left: 20px;">
+                    <li>Lidl: €${totalen["Lidl"].toFixed(2)}</li>
+                    <li>Jumbo: €${totalen["Jumbo"].toFixed(2)}</li>
+                    <li>Plus: €${totalen["Plus"].toFixed(2)}</li>
+                </ul>
+                Ga naar de: <span class="winner">${winnaar}!</span>
+            `;
+        }
+
+        // Teken de lijst direct bij het openen van de pagina
+        window.onload = tekenLijst;
+
+    </script>
+</body>
+</html>
