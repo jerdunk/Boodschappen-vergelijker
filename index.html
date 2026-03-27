@@ -5,112 +5,162 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Supermarkt Prijsvergelijker</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-            --success: #22c55e;
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
             --warning: #f59e0b;
-            --danger: #ef4444;
-            --gray-50: #f9fafb;
-            --gray-100: #f3f4f6;
-            --gray-200: #e5e7eb;
-            --gray-300: #d1d5db;
-            --gray-500: #6b7280;
-            --gray-700: #374151;
-            --gray-900: #111827;
-            --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
-            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+            --radius: 16px;
+            --radius-sm: 10px;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: var(--gray-100);
-            color: var(--gray-900);
-            line-height: 1.5;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-attachment: fixed;
+            color: var(--gray-800);
+            line-height: 1.6;
             min-height: 100vh;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 1rem;
+        .bg-shapes {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            overflow: hidden;
+            z-index: -1;
+            pointer-events: none;
         }
 
-        /* Header */
-        header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
+        .bg-shapes span {
+            position: absolute;
+            display: block;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 25s linear infinite;
+        }
+
+        .bg-shapes span:nth-child(1) { left: 10%; width: 100px; height: 100px; animation-delay: 0s; }
+        .bg-shapes span:nth-child(2) { left: 20%; width: 40px; height: 40px; animation-delay: 2s; animation-duration: 12s; }
+        .bg-shapes span:nth-child(3) { left: 35%; width: 80px; height: 80px; animation-delay: 4s; }
+        .bg-shapes span:nth-child(4) { left: 50%; width: 120px; height: 120px; animation-delay: 0s; animation-duration: 18s; }
+        .bg-shapes span:nth-child(5) { left: 65%; width: 50px; height: 50px; animation-delay: 0s; }
+        .bg-shapes span:nth-child(6) { left: 80%; width: 90px; height: 90px; animation-delay: 3s; animation-duration: 22s; }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
             padding: 2rem 1rem;
+        }
+
+        header {
             text-align: center;
+            padding: 2rem 1rem 3rem;
+            color: white;
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 80px; height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
             margin-bottom: 1.5rem;
+            font-size: 2.5rem;
+            box-shadow: var(--shadow-lg);
         }
 
         header h1 {
-            font-size: 1.75rem;
-            margin-bottom: 0.5rem;
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.025em;
         }
 
         header p {
+            font-size: 1.1rem;
             opacity: 0.9;
-            font-size: 0.95rem;
+            max-width: 400px;
+            margin: 0 auto;
         }
 
-        /* Cards */
         .card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: var(--shadow);
-            padding: 1.5rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 1.75rem;
             margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-lg);
         }
 
         .card-title {
-            font-size: 1.1rem;
+            font-size: 0.9rem;
             font-weight: 600;
-            margin-bottom: 1rem;
+            color: var(--gray-600);
+            margin-bottom: 1.25rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
-        .card-title i {
-            color: var(--primary);
-        }
-
-        /* Shopping List Input */
-        .input-section {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
+        .card-title i { color: var(--primary); }
 
         textarea {
             width: 100%;
-            min-height: 200px;
-            padding: 1rem;
-            border: 2px solid var(--gray-200);
-            border-radius: 8px;
+            min-height: 180px;
+            padding: 1.25rem;
+            background: white;
+            border: 2px solid transparent;
+            border-radius: var(--radius-sm);
             font-size: 1rem;
             font-family: inherit;
             resize: vertical;
-            transition: border-color 0.2s;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            margin-bottom: 1.25rem;
         }
 
+        textarea:hover { border-color: var(--gray-200); }
         textarea:focus {
             outline: none;
             border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
         }
-
-        textarea::placeholder {
-            color: var(--gray-500);
-        }
+        textarea::placeholder { color: var(--gray-400); }
 
         .btn-row {
             display: flex;
@@ -119,183 +169,225 @@
         }
 
         .btn {
-            padding: 0.75rem 1.5rem;
+            padding: 0.875rem 1.75rem;
             border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 500;
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: inherit;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            transition: all 0.2s;
+            justify-content: center;
+            gap: 0.6rem;
+            transition: all 0.25s ease;
         }
 
         .btn-primary {
-            background: var(--primary);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
+            box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.4);
         }
 
         .btn-primary:hover:not(:disabled) {
-            background: var(--primary-dark);
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px 0 rgba(99, 102, 241, 0.5);
         }
 
         .btn-secondary {
-            background: var(--gray-200);
+            background: white;
             color: var(--gray-700);
+            box-shadow: var(--shadow);
         }
 
         .btn-secondary:hover:not(:disabled) {
-            background: var(--gray-300);
+            background: var(--gray-50);
+            transform: translateY(-1px);
         }
 
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
 
-        /* Loading State */
         .loading {
             text-align: center;
-            padding: 3rem;
-            color: var(--gray-500);
+            padding: 4rem 2rem;
+            color: white;
         }
 
-        .loading i {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-            animation: spin 1s linear infinite;
+        .loading-spinner {
+            width: 56px; height: 56px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 1.5rem;
         }
 
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
         }
 
-        /* Results Grid */
+        .stat-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-sm);
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .stat-icon {
+            width: 44px; height: 44px;
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.75rem;
+            color: white;
+            font-size: 1.1rem;
+        }
+
+        .stat-card:nth-child(2) .stat-icon { background: linear-gradient(135deg, #34d399, #10b981); }
+        .stat-card:nth-child(3) .stat-icon { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+        .stat-card:nth-child(4) .stat-icon { background: linear-gradient(135deg, #60a5fa, #3b82f6); }
+
+        .stat-value { font-size: 1.5rem; font-weight: 700; color: var(--gray-800); }
+        .stat-label { font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.25rem; }
+
         .results-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.25rem;
         }
 
         .supermarket-card {
             background: white;
-            border-radius: 12px;
+            border-radius: var(--radius);
             box-shadow: var(--shadow);
             overflow: hidden;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            animation: fadeInUp 0.4s ease forwards;
+        }
+
+        .supermarket-card:nth-child(1) { animation-delay: 0.05s; }
+        .supermarket-card:nth-child(2) { animation-delay: 0.1s; }
+        .supermarket-card:nth-child(3) { animation-delay: 0.15s; }
+        .supermarket-card:nth-child(4) { animation-delay: 0.2s; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .supermarket-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
         }
 
         .supermarket-card.cheapest {
-            border: 2px solid var(--success);
-        }
-
-        .supermarket-card.cheapest .supermarket-header {
-            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            border-color: var(--success);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15), var(--shadow-lg);
         }
 
         .supermarket-header {
             display: flex;
             align-items: center;
             gap: 1rem;
-            padding: 1rem;
+            padding: 1.25rem;
             background: var(--gray-50);
-            border-bottom: 1px solid var(--gray-200);
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .cheapest .supermarket-header {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
         }
 
         .supermarket-logo {
-            width: 48px;
-            height: 48px;
-            border-radius: 8px;
+            width: 56px; height: 56px;
+            border-radius: 14px;
             object-fit: contain;
             background: white;
-            padding: 4px;
+            padding: 6px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
-        .supermarket-info {
-            flex: 1;
-        }
+        .supermarket-info { flex: 1; min-width: 0; }
 
         .supermarket-name {
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-
-        .supermarket-meta {
-            font-size: 0.85rem;
-            color: var(--gray-500);
-        }
-
-        .supermarket-price {
-            font-size: 1.5rem;
             font-weight: 700;
-            color: var(--primary);
+            font-size: 1.15rem;
+            color: var(--gray-800);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
         }
 
-        .cheapest .supermarket-price {
-            color: var(--success);
-        }
+        .supermarket-meta { font-size: 0.85rem; color: var(--gray-500); margin-top: 0.25rem; }
+
+        .supermarket-price { text-align: right; }
+        .price-amount { font-size: 1.75rem; font-weight: 700; color: var(--gray-800); line-height: 1; }
+        .cheapest .price-amount { color: var(--success); }
+        .price-label { font-size: 0.7rem; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.05em; }
 
         .badge {
-            display: inline-block;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            font-weight: 700;
             text-transform: uppercase;
-        }
-
-        .badge-success {
+            letter-spacing: 0.03em;
             background: var(--success);
             color: white;
         }
 
-        /* Product List */
         .product-list {
             padding: 0.5rem;
-            max-height: 300px;
+            max-height: 280px;
             overflow-y: auto;
         }
+
+        .product-list::-webkit-scrollbar { width: 6px; }
+        .product-list::-webkit-scrollbar-track { background: var(--gray-100); border-radius: 3px; }
+        .product-list::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
 
         .product-item {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            padding: 0.75rem;
-            border-radius: 6px;
-            margin-bottom: 0.25rem;
+            padding: 0.875rem;
+            border-radius: var(--radius-sm);
+            transition: background 0.2s;
         }
 
-        .product-item:hover {
-            background: var(--gray-50);
-        }
+        .product-item:hover { background: var(--gray-50); }
 
-        .product-name {
-            flex: 1;
-            font-size: 0.9rem;
-        }
-
+        .product-name { flex: 1; min-width: 0; }
         .product-name a {
-            color: var(--gray-900);
+            color: var(--gray-800);
             text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
         }
-
-        .product-name a:hover {
-            color: var(--primary);
-            text-decoration: underline;
-        }
+        .product-name a:hover { color: var(--primary); }
 
         .product-query {
             font-size: 0.8rem;
-            color: var(--gray-500);
+            color: var(--gray-400);
             display: block;
+            margin-top: 0.2rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .product-price {
@@ -303,217 +395,162 @@
             color: var(--gray-700);
             white-space: nowrap;
             margin-left: 1rem;
-        }
-
-        .product-price.estimate {
-            color: var(--warning);
-        }
-
-        .product-not-found {
-            color: var(--danger);
-            font-style: italic;
-        }
-
-        /* Stats Bar */
-        .stats-bar {
-            background: var(--gray-50);
-            padding: 1rem;
-            border-radius: 8px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .stat {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.4rem;
         }
 
-        .stat i {
-            color: var(--primary);
+        .product-price.estimate { color: var(--warning); }
+        .product-not-found { color: var(--gray-400); font-style: italic; }
+
+        .error-message {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+            padding: 1.25rem;
+            border-radius: var(--radius-sm);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
 
-        .stat-label {
-            color: var(--gray-500);
-            font-size: 0.9rem;
-        }
-
-        .stat-value {
-            font-weight: 600;
-        }
-
-        /* Footer */
         footer {
             text-align: center;
-            padding: 2rem;
-            color: var(--gray-500);
+            padding: 3rem 1rem;
+            color: rgba(255, 255, 255, 0.8);
             font-size: 0.9rem;
         }
 
-        footer a {
-            color: var(--primary);
-            text-decoration: none;
-        }
+        footer a { color: white; text-decoration: none; font-weight: 500; }
+        footer a:hover { opacity: 0.8; }
+        footer .divider { margin: 0 0.75rem; opacity: 0.5; }
 
-        footer a:hover {
-            text-decoration: underline;
-        }
-
-        /* Responsive */
         @media (max-width: 640px) {
-            header h1 {
-                font-size: 1.4rem;
-            }
-
-            .btn {
-                flex: 1;
-                justify-content: center;
-            }
-
-            .results-grid {
-                grid-template-columns: 1fr;
-            }
+            .container { padding: 1rem; }
+            header { padding: 1.5rem 1rem 2rem; }
+            header h1 { font-size: 1.75rem; }
+            .logo { width: 64px; height: 64px; font-size: 2rem; }
+            .btn { flex: 1; min-width: 120px; }
+            .results-grid { grid-template-columns: 1fr; }
+            .stats-bar { grid-template-columns: repeat(2, 1fr); }
         }
 
-        /* Hidden */
-        .hidden {
-            display: none !important;
-        }
-
-        /* Error message */
-        .error-message {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            color: #dc2626;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-        }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
+    <div class="bg-shapes">
+        <span></span><span></span><span></span>
+        <span></span><span></span><span></span>
+    </div>
+
     <header>
-        <h1><i class="fas fa-shopping-cart"></i> Supermarkt Prijsvergelijker</h1>
-        <p>Vergelijk prijzen en vind de goedkoopste supermarkt voor je boodschappen</p>
+        <div class="logo"><i class="fas fa-cart-shopping"></i></div>
+        <h1>Prijsvergelijker</h1>
+        <p>Vergelijk je boodschappen en bespaar bij de supermarkt</p>
     </header>
 
     <div class="container">
-        <!-- Input Section -->
         <div class="card">
-            <h2 class="card-title"><i class="fas fa-list"></i> Boodschappenlijst</h2>
-            <div class="input-section">
-                <textarea 
-                    id="shoppingList" 
-                    placeholder="Typ hier je boodschappen, één product per regel:
+            <h2 class="card-title"><i class="fas fa-list-check"></i> Boodschappenlijst</h2>
+            <textarea id="shoppingList" placeholder="Typ je boodschappen, één per regel:
 
-halfvolle melk
+halfvolle melk 1,5 liter
 volkoren brood
-roomboter
+roomboter 250 gram
 6 eieren
-1 kg bananen
-cola 1,5 liter"></textarea>
-                <div class="btn-row">
-                    <button class="btn btn-primary" id="compareBtn" onclick="comparePrices()">
-                        <i class="fas fa-search-dollar"></i> Vergelijk prijzen
-                    </button>
-                    <button class="btn btn-secondary" onclick="loadExample()">
-                        <i class="fas fa-lightbulb"></i> Voorbeeld
-                    </button>
-                    <button class="btn btn-secondary" onclick="clearList()">
-                        <i class="fas fa-trash"></i> Wissen
-                    </button>
-                </div>
+bananen 1 kg"></textarea>
+            <div class="btn-row">
+                <button class="btn btn-primary" id="compareBtn" onclick="comparePrices()">
+                    <i class="fas fa-magnifying-glass-dollar"></i> Vergelijk prijzen
+                </button>
+                <button class="btn btn-secondary" onclick="loadExample()">
+                    <i class="fas fa-lightbulb"></i> Voorbeeld
+                </button>
+                <button class="btn btn-secondary" onclick="clearList()">
+                    <i class="fas fa-xmark"></i> Wissen
+                </button>
             </div>
         </div>
 
-        <!-- Error Message -->
-        <div id="errorMessage" class="error-message hidden"></div>
+        <div id="errorMessage" class="error-message hidden">
+            <i class="fas fa-circle-exclamation"></i>
+            <span id="errorText"></span>
+        </div>
 
-        <!-- Loading State -->
         <div id="loading" class="loading hidden">
-            <i class="fas fa-spinner"></i>
-            <p>Prijzen worden opgehaald...</p>
+            <div class="loading-spinner"></div>
+            <p>Prijzen ophalen...</p>
         </div>
 
-        <!-- Stats Bar -->
         <div id="statsBar" class="stats-bar hidden">
-            <div class="stat">
-                <i class="fas fa-box"></i>
-                <span class="stat-label">Producten:</span>
-                <span class="stat-value" id="statProducts">0</span>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-box"></i></div>
+                <div class="stat-value" id="statProducts">0</div>
+                <div class="stat-label">Producten</div>
             </div>
-            <div class="stat">
-                <i class="fas fa-store"></i>
-                <span class="stat-label">Supermarkten:</span>
-                <span class="stat-value" id="statStores">0</span>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-store"></i></div>
+                <div class="stat-value" id="statStores">0</div>
+                <div class="stat-label">Supermarkten</div>
             </div>
-            <div class="stat">
-                <i class="fas fa-piggy-bank"></i>
-                <span class="stat-label">Maximale besparing:</span>
-                <span class="stat-value" id="statSavings">€0,00</span>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-piggy-bank"></i></div>
+                <div class="stat-value" id="statSavings">€0</div>
+                <div class="stat-label">Max. besparing</div>
             </div>
-            <div class="stat">
-                <i class="fas fa-clock"></i>
-                <span class="stat-label">Prijzen van:</span>
-                <span class="stat-value" id="statDate">-</span>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-calendar"></i></div>
+                <div class="stat-value" id="statDate">-</div>
+                <div class="stat-label">Bijgewerkt</div>
             </div>
         </div>
 
-        <!-- Results -->
         <div id="results" class="results-grid"></div>
     </div>
 
     <footer>
-        <p>
-            Prijsdata van <a href="https://www.checkjebon.nl/" target="_blank">Checkjebon.nl</a> · 
-            <a href="https://github.com/supermarkt/checkjebon" target="_blank">Open Source</a> · 
-            MIT Licentie
-        </p>
+        <a href="https://www.checkjebon.nl/" target="_blank">Checkjebon.nl</a>
+        <span class="divider">•</span>
+        <a href="https://github.com/supermarkt/checkjebon" target="_blank">Open Source</a>
+        <span class="divider">•</span>
+        MIT Licentie
     </footer>
 
-    <!-- Checkjebon.js Library -->
     <script src="https://supermarkt.github.io/checkjebon-js/checkjebon.js"></script>
-    
     <script>
-        // DOM Elements
         const shoppingListInput = document.getElementById('shoppingList');
         const compareBtn = document.getElementById('compareBtn');
         const loadingEl = document.getElementById('loading');
         const resultsEl = document.getElementById('results');
         const statsBar = document.getElementById('statsBar');
         const errorMessage = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
 
-        // Load saved shopping list from localStorage
         document.addEventListener('DOMContentLoaded', () => {
             const saved = localStorage.getItem('shoppingList');
-            if (saved) {
-                shoppingListInput.value = saved;
-            }
+            if (saved) shoppingListInput.value = saved;
         });
 
-        // Save shopping list on change
         shoppingListInput.addEventListener('input', () => {
             localStorage.setItem('shoppingList', shoppingListInput.value);
         });
 
-        // Example shopping list
         function loadExample() {
             shoppingListInput.value = `halfvolle melk 1,5 liter
 volkoren brood
 roomboter 250 gram
 6 eieren
-1 kg bananen
+bananen 1 kg
 pindakaas
 hagelslag
-kaas jong belegen
+jong belegen kaas
 yoghurt
 cola 1,5 liter`;
             localStorage.setItem('shoppingList', shoppingListInput.value);
         }
 
-        // Clear shopping list
         function clearList() {
             shoppingListInput.value = '';
             localStorage.removeItem('shoppingList');
@@ -522,36 +559,23 @@ cola 1,5 liter`;
             errorMessage.classList.add('hidden');
         }
 
-        // Format price
         function formatPrice(price) {
             if (price === null || price === undefined) return '-';
-            return new Intl.NumberFormat('nl-NL', {
-                style: 'currency',
-                currency: 'EUR'
-            }).format(price);
+            return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(price);
         }
 
-        // Compare prices
+        function showError(message) {
+            errorText.textContent = message;
+            errorMessage.classList.remove('hidden');
+        }
+
         async function comparePrices() {
             const listText = shoppingListInput.value.trim();
-            
-            if (!listText) {
-                showError('Voer eerst een boodschappenlijst in.');
-                return;
-            }
+            if (!listText) { showError('Voer eerst een boodschappenlijst in.'); return; }
 
-            // Parse shopping list
-            const products = listText
-                .split('\n')
-                .map(line => line.trim())
-                .filter(line => line.length > 0);
+            const products = listText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            if (products.length === 0) { showError('Voer ten minste één product in.'); return; }
 
-            if (products.length === 0) {
-                showError('Voer ten minste één product in.');
-                return;
-            }
-
-            // Show loading, hide results
             errorMessage.classList.add('hidden');
             loadingEl.classList.remove('hidden');
             resultsEl.innerHTML = '';
@@ -559,26 +583,20 @@ cola 1,5 liter`;
             compareBtn.disabled = true;
 
             try {
-                // Check if checkjebon library is loaded
                 if (typeof getPricesForProducts !== 'function') {
-                    throw new Error('Checkjebon library niet geladen. Controleer je internetverbinding.');
+                    throw new Error('Checkjebon library niet geladen.');
                 }
 
-                // Fetch prices
                 let supermarkets = await getPricesForProducts(products);
-
-                // Filter op geselecteerde supermarkten
                 const allowedCodes = ['jumbo', 'ah', 'plus', 'lidl'];
                 supermarkets = supermarkets.filter(s => allowedCodes.includes(s.code.toLowerCase()));
 
-                // Sort by total price
                 supermarkets.sort((a, b) => {
                     const priceA = a.products.reduce((sum, p) => sum + (p.price || 0), 0);
                     const priceB = b.products.reduce((sum, p) => sum + (p.price || 0), 0);
                     return priceA - priceB;
                 });
 
-                // Calculate totals
                 const totals = supermarkets.map(s => ({
                     ...s,
                     totalPrice: s.products.reduce((sum, p) => sum + (p.price || 0), 0),
@@ -590,56 +608,49 @@ cola 1,5 liter`;
                 const cheapest = totals[0]?.totalPrice || 0;
                 const mostExpensive = totals[totals.length - 1]?.totalPrice || 0;
 
-                // Update stats
                 document.getElementById('statProducts').textContent = products.length;
                 document.getElementById('statStores').textContent = supermarkets.length;
                 document.getElementById('statSavings').textContent = formatPrice(mostExpensive - cheapest);
-                
-                // Get last update date
+
                 const lastUpdate = typeof pricesLastUpdated === 'function' ? pricesLastUpdated() : null;
-                document.getElementById('statDate').textContent = lastUpdate 
-                    ? lastUpdate.toLocaleDateString('nl-NL')
-                    : 'Onbekend';
-                
+                document.getElementById('statDate').textContent = lastUpdate
+                    ? lastUpdate.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })
+                    : '-';
+
                 statsBar.classList.remove('hidden');
 
-                // Render results
-                resultsEl.innerHTML = totals.map((supermarket, index) => `
-                    <div class="supermarket-card ${index === 0 ? 'cheapest' : ''}">
+                resultsEl.innerHTML = totals.map((sm, i) => `
+                    <div class="supermarket-card ${i === 0 ? 'cheapest' : ''}">
                         <div class="supermarket-header">
-                            ${supermarket.icon 
-                                ? `<img src="${supermarket.icon}" alt="${supermarket.name}" class="supermarket-logo">`
-                                : `<div class="supermarket-logo" style="display:flex;align-items:center;justify-content:center;background:var(--gray-200);font-weight:bold;">${supermarket.name.charAt(0)}</div>`
-                            }
+                            ${sm.icon
+                                ? `<img src="${sm.icon}" alt="${sm.name}" class="supermarket-logo">`
+                                : `<div class="supermarket-logo" style="display:flex;align-items:center;justify-content:center;background:var(--gray-100);font-weight:bold;font-size:1.25rem;color:var(--gray-600);">${sm.name.charAt(0)}</div>`}
                             <div class="supermarket-info">
                                 <div class="supermarket-name">
-                                    ${supermarket.name}
-                                    ${index === 0 ? '<span class="badge badge-success">Goedkoopst</span>' : ''}
+                                    ${sm.name}
+                                    ${i === 0 ? '<span class="badge"><i class="fas fa-trophy"></i> Goedkoopst</span>' : ''}
                                 </div>
                                 <div class="supermarket-meta">
-                                    ${supermarket.foundCount} gevonden
-                                    ${supermarket.estimateCount > 0 ? `, ${supermarket.estimateCount} geschat` : ''}
-                                    ${supermarket.notFoundCount > 0 ? `, ${supermarket.notFoundCount} niet gevonden` : ''}
+                                    ${sm.foundCount} gevonden${sm.estimateCount > 0 ? ` · ${sm.estimateCount} geschat` : ''}${sm.notFoundCount > 0 ? ` · ${sm.notFoundCount} niet gevonden` : ''}
                                 </div>
                             </div>
-                            <div class="supermarket-price">${formatPrice(supermarket.totalPrice)}</div>
+                            <div class="supermarket-price">
+                                <div class="price-amount">${formatPrice(sm.totalPrice)}</div>
+                                <div class="price-label">Totaal</div>
+                            </div>
                         </div>
                         <div class="product-list">
-                            ${supermarket.products.map(product => `
+                            ${sm.products.map(p => `
                                 <div class="product-item">
                                     <div class="product-name">
-                                        ${product.name 
-                                            ? (product.link 
-                                                ? `<a href="${product.link}" target="_blank">${product.name}</a>`
-                                                : product.name)
-                                            : `<span class="product-not-found">Niet gevonden</span>`
-                                        }
-                                        ${product.amount ? `<span class="product-query">${product.amount}</span>` : ''}
-                                        <span class="product-query">${product.originalQuery || ''}</span>
+                                        ${p.name
+                                            ? (p.link ? `<a href="${p.link}" target="_blank">${p.name}</a>` : `<span>${p.name}</span>`)
+                                            : '<span class="product-not-found">Niet gevonden</span>'}
+                                        <span class="product-query">${p.originalQuery || ''}</span>
                                     </div>
-                                    <div class="product-price ${product.isEstimate ? 'estimate' : ''}">
-                                        ${formatPrice(product.price)}
-                                        ${product.isEstimate ? '<i class="fas fa-question-circle" title="Geschatte prijs"></i>' : ''}
+                                    <div class="product-price ${p.isEstimate ? 'estimate' : ''}">
+                                        ${formatPrice(p.price)}
+                                        ${p.isEstimate ? '<i class="fas fa-circle-question" title="Geschatte prijs"></i>' : ''}
                                     </div>
                                 </div>
                             `).join('')}
@@ -648,7 +659,7 @@ cola 1,5 liter`;
                 `).join('');
 
             } catch (error) {
-                console.error('Error fetching prices:', error);
+                console.error(error);
                 showError(`Er ging iets mis: ${error.message}`);
             } finally {
                 loadingEl.classList.add('hidden');
@@ -656,16 +667,8 @@ cola 1,5 liter`;
             }
         }
 
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.classList.remove('hidden');
-        }
-
-        // Keyboard shortcut: Ctrl+Enter to compare
-        shoppingListInput.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.key === 'Enter') {
-                comparePrices();
-            }
+        shoppingListInput.addEventListener('keydown', e => {
+            if (e.ctrlKey && e.key === 'Enter') comparePrices();
         });
     </script>
 </body>
